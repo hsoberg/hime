@@ -3,7 +3,13 @@ import Image from "next/image";
 import { MobileMenu } from "./MobileMenu";
 import { Button } from "@/components/ui/Button";
 
-const navLinks = [
+type NavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+const navLinks: NavLink[] = [
   { href: "/produkter-og-priser", label: "Produkter og priser" },
   { href: "/kundeservice", label: "Kundeservice" },
   { href: "/driftsmeldinger", label: "Driftsmeldinger" },
