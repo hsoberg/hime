@@ -236,9 +236,8 @@ function CoverageResult({
     Nakkerud: "/vikersund_midnight_blue_stylized_map.png", // Fallback to Vikersund/Modum
   };
 
-  const mapSrc = areaMaps[result.area] || "/vikersund_midnight_blue_stylized_map.png";
-
   if (result.status === "covered") {
+    const mapSrc = areaMaps[result.area] || "/vikersund_midnight_blue_stylized_map.png";
     return (
       <div className="relative overflow-hidden rounded-xl bg-[#E6F7FA] border border-[#99DDE8] p-5">
         {/* Decorative Map Background */}
