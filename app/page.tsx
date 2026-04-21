@@ -1,65 +1,84 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { HeroSection } from "@/components/sections/HeroSection";
+import { DifferentiatorSection } from "@/components/sections/DifferentiatorSection";
+import { ProductsSection } from "@/components/sections/ProductsSection";
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
+import { SupportSection } from "@/components/sections/SupportSection";
+import { AktueltSection } from "@/components/sections/AktueltSection";
+import { FAQSection } from "@/components/sections/FAQSection";
+import { CTABanner } from "@/components/sections/CTABanner";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Hime — Lokalt internett og TV i Modum, Sigdal og Krødsherad",
+  description:
+    "Hime leverer internett og TV i Modum, Sigdal, Krødsherad, Nakkerud og Tyristrand. 25 lokale ansatte, familieeid siden 1996. Ring 32 78 46 40.",
+  alternates: {
+    canonical: "https://hime.no",
+  },
+};
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://hime.no/#organization",
+  name: "Hime",
+  legalName: "Modum Kabel-TV AS",
+  description:
+    "Lokal leverandør av internett og TV i Modum, Sigdal, Krødsherad, Nakkerud og Tyristrand. Familieeid og lokalt drevet siden 1996.",
+  url: "https://hime.no",
+  telephone: "+4732784640",
+  email: "post@mktv.no",
+  foundingDate: "1996",
+  numberOfEmployees: { "@type": "QuantitativeValue", value: 25 },
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Eikerveien 33",
+    postalCode: "3340",
+    addressLocality: "Åmot",
+    addressCountry: "NO",
+  },
+  areaServed: [
+    { "@type": "Place", name: "Modum" },
+    { "@type": "Place", name: "Sigdal" },
+    { "@type": "Place", name: "Krødsherad" },
+    { "@type": "Place", name: "Nakkerud" },
+    { "@type": "Place", name: "Tyristrand" },
+  ],
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "08:00",
+      closes: "19:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "Saturday",
+      opens: "10:00",
+      closes: "14:00",
+    },
+  ],
+  sameAs: [
+    "https://www.facebook.com/modumkabeltv",
+    "https://www.instagram.com/modumkabeltv",
+  ],
+};
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+      <HeroSection />
+      <DifferentiatorSection />
+      <ProductsSection />
+      <TestimonialsSection />
+      <SupportSection />
+      <AktueltSection />
+      <FAQSection />
+      <CTABanner />
+    </>
   );
 }

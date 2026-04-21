@@ -1,26 +1,144 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Hime brand colors */
+  --color-primary:        #FF8278;   /* Hime Fersken */
+  --color-primary-dark:   #E86560;   /* Hover/active fersken */
+  --color-primary-light:  #FFF1F0;   /* Lys fersken-tint */
+  
+  --color-teal:           #00A6C1;   /* Kontrast Turkis */
+  --color-teal-dark:      #0090A8;
+  --color-teal-light:     #E6F7FA;
+
+  --color-dark:           #003C46;   /* Mørk Petrol (Headings/Brand) */
+  --color-dark-mid:       #1A5060;
+  --color-dark-muted:     #4A7080;
+  --color-gray-dark:      #5F6B6D;   /* Sekundær tekst grå */
+
+  --color-light:          #DCDCDC;   /* Lys gråflate */
+  --color-light-separator: rgba(0, 60, 70, 0.12);
+
+  /* Surface / neutrals */
+  --color-surface:        #FFFFFF;
+  --color-surface-soft:   #F9F9F9;
+  --color-border:         rgba(0, 60, 70, 0.08);
+
+  /* Typography */
+  --font-sans: var(--font-raleway), "Helvetica Neue", Arial, sans-serif;
+
+  /* Radius */
+  --radius-tight: 8px;
+  --radius-card:  12px;
+  --radius-panel: 16px;
+  --radius-pill:  999px;
+
+  /* Spacing Base: 8px */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: #ffffff;
+    color: var(--color-dark);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-dark);
+    font-weight: 700;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Hime Typography Scale */
+  .text-display-xl {
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .text-display-l {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.10;
+  }
+  .text-h1 {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .text-h2 {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.20;
+  }
+  .text-h3 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .text-h4 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.30;
+  }
+  .text-lead {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.50;
+  }
+  .text-body-base {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.55;
+  }
+  .text-body-small {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.50;
+  }
+  .text-label {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.30;
+    letter-spacing: 0.2px;
+  }
+  .text-caption {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.40;
+    letter-spacing: 0.2px;
+  }
+
+  /* Custom Animations */
+  .hime-overlay-enter {
+    animation: hime-fade-in 180ms ease-out;
+  }
+  .hime-panel-enter {
+    animation: hime-slide-in-right 220ms ease-out;
+  }
+}
+
+@keyframes hime-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hime-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Skjul standard-boblen til Enduser.no chatten */
+ina-chat:not([active="true"]):not(.ina-chat-open) {
+  display: none !important;
 }

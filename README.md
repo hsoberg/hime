@@ -2,6 +2,32 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Support Agent (optional OpenAI)
+
+Kundeservice-agenten fungerer med lokal kunnskapsbase uten ekstra oppsett.
+Hvis du vil bruke LLM-svar med grounding mot intern kunnskap, legg til disse variablene i `.env.local`:
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4.1-mini
+SUPPORT_AGENT_LOG_ENABLED=true
+SUPPORT_AGENT_LOG_PATH=./scratch/support-agent-logs.ndjson
+SUPPORT_AGENT_STATS_TOKEN=optional_secret_token
+ADMIN_DASHBOARD_TOKEN=choose_a_secret_token
+ADMIN_AUTH_RATE_LIMIT_MAX_ATTEMPTS=5
+ADMIN_AUTH_RATE_LIMIT_WINDOW_MS=600000
+ADMIN_AUTH_RATE_LIMIT_BLOCK_MS=900000
+```
+
+Hvis `OPENAI_API_KEY` mangler eller API-kallet feiler, brukes automatisk lokal fallback.
+Loggfil skrives som NDJSON for enkel analyse i etterkant.
+
+Statistikk for siste 24 timer er tilgjengelig på `GET /api/support-agent/stats`.
+Hvis `SUPPORT_AGENT_STATS_TOKEN` er satt, må header `x-stats-token` sendes med korrekt verdi.
+Intern dashboard-side finnes på `/admin/support-agent`.
+Når `ADMIN_DASHBOARD_TOKEN` er satt, blir dashboardet låst bak login på `/admin/support-agent/login`.
+Login-endepunktet har enkel IP-basert rate-limit for brute-force-beskyttelse.
+
 First, run the development server:
 
 ```bash
