@@ -55,7 +55,7 @@ const ChannelScheduleModal = ({ channel, date, onClose }: { channel: ChannelSche
         
         {/* Scrollable Schedule List */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4 custom-scrollbar bg-slate-50/30">
-          {channel.programs.map((p, i) => (
+          {channel.programs.map((p: Program, i: number) => (
             <div 
               key={i} 
               className={`group relative flex items-start gap-8 p-6 rounded-3xl border transition-all duration-300 ${
@@ -272,7 +272,7 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
   const searchMatch = useMemo(() => {
     if (!searchQuery) return null;
     const q = searchQuery.toLowerCase();
-    return channel.programs.find(p => p.title.toLowerCase().includes(q));
+    return channel.programs.find((p: Program) => p.title.toLowerCase().includes(q));
   }, [channel.programs, searchQuery]);
 
   // Find current program with MUCH more robust logic
@@ -282,7 +282,7 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
     const currentTime = now.getTime();
     
     // 1. Try to find the exact live match
-    const liveMatch = channel.programs.find(p => {
+    const liveMatch = channel.programs.find((p: Program) => {
       const start = new Date(p.start).getTime();
       const end = new Date(p.end).getTime();
       return currentTime >= start && currentTime < end;
@@ -293,7 +293,7 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
     // 2. If it's "Today", and no exact match, find the nearest program
     if (isToday) {
       // Find the first program that hasn't ended yet
-      const upcoming = channel.programs.find(p => new Date(p.end).getTime() > currentTime);
+      const upcoming = channel.programs.find((p: Program) => new Date(p.end).getTime() > currentTime);
       if (upcoming) return upcoming;
 
       // If all programs have ended, show the last one
