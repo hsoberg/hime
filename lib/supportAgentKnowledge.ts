@@ -14,6 +14,9 @@ export type SupportKnowledgeItem = {
 const STOP_WORDS = new Set([
   "jeg",
   "du",
+  "vi",
+  "dere",
+  "man",
   "det",
   "den",
   "de",
@@ -30,9 +33,18 @@ const STOP_WORDS = new Set([
   "hvordan",
   "hvor",
   "når",
+  "hvilke",
+  "hvilken",
+  "hvem",
   "min",
   "mitt",
   "mine",
+  "vår",
+  "vårt",
+  "våre",
+  "din",
+  "ditt",
+  "dine",
   "har",
   "får",
   "skal",
@@ -40,6 +52,12 @@ const STOP_WORDS = new Set([
   "et",
   "en",
   "i",
+  "at",
+  "da",
+  "så",
+  "om",
+  "men",
+  "eller",
 ]);
 
 export const supportKnowledge: SupportKnowledgeItem[] = [
@@ -133,7 +151,7 @@ export const supportKnowledge: SupportKnowledgeItem[] = [
     id: "himepakken-kanaler",
     title: "Kanaler i Himepakken",
     answer:
-      "Grunnpakken i Himepakken inkluderer nå 23 utvalgte kanaler med profesjonelle logoer og høy kvalitet. Eksempler er NRK1-3, TV 2 Direkte, TVNorge, TV3, TV 2 Sport 1/2, TV 2 Nyheter, Eurosport 1/Norge, BBC News, Discovery Channel og vår egen TVModum. For full oppdatert liste med logoer, se oversikten vår.",
+      "Grunnpakken i Himepakken inkluderer nå 23 utvalgte kanaler med profesjonelle logoer og høy kvalitet. Eksempler er NRK1-3, TV 2 Direkte, TVNorge, TV3, TV 2 Sport 1/2 (norsk sport), TV 2 Nyheter, Eurosport 1/Norge, BBC News, Discovery Channel og vår egen TVModum. For full oppdatert liste med logoer, se oversikten vår.",
     keywords: [
       "himepakken",
       "kanaler i himepakken",
@@ -187,7 +205,7 @@ export const supportKnowledge: SupportKnowledgeItem[] = [
     id: "sportspakker-pris",
     title: "Sportspakker og pris",
     answer:
-      "Vi tilbyr blant annet V Premium, TV 2 Sport Premium og V Sport. Alle pakkene kan enkelt legges til på Min side.",
+      "Vi tilbyr blant annet V Premium (med Premier League), TV 2 Sport Premium (med Champions League) og V Sport. Alle pakkene kan enkelt legges til på Min side.",
     keywords: [
       "sportspakker",
       "sportspakke",
@@ -205,7 +223,7 @@ export const supportKnowledge: SupportKnowledgeItem[] = [
     title: "WiFi og dekning",
     answer:
       "Hvis du opplever tregt eller ustabilt nett, start med WiFi-guiden for dekning, plassering og tips.",
-    keywords: ["wifi", "trådløs", "tradlos", "dekning", "treg", "ustabil"],
+    keywords: ["wifi", "trådløs", "tradlos", "dekning", "treg", "ustabil", "dårlig", "problem", "hjemmekontor", "kontor", "ruter", "vegg", "signaler"],
     links: [{ label: "WiFi-hjelp", href: "/wifi" }],
   },
   {
@@ -267,7 +285,7 @@ export const supportKnowledge: SupportKnowledgeItem[] = [
     title: "Mest populære produkter og anbefalinger",
     answer:
       "Vårt mest populære og anbefalte produkt er Himepakken. Den kombinerer lynraskt internett (500 Mbps) med en komplett TV-pakke, Himeboks og app-tilgang. Dette gir deg alt du trenger i én samlet pakke til en gunstig pris.",
-    keywords: ["populær", "anbefaling", "anbefaler", "best", "himepakken", "mestepart", "velge", "tips"],
+    keywords: ["populær", "anbefaling", "anbefaler", "best", "himepakken", "mestepart", "velge", "tips", "tjenester", "produkter", "tilbud", "hva har dere"],
     links: [{ label: "Se Himepakken og priser", href: "/produkter-og-priser" }],
   },
   {
@@ -288,156 +306,18 @@ export const supportKnowledge: SupportKnowledgeItem[] = [
   },
 ];
 
-function normalize(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+export function getAllKnowledgeAsText(): string {
+  return supportKnowledge
+    .map((item, index) => {
+      const links = (item.links ?? [])
+        .map((link) => `- ${link.label}: ${link.href}`)
+        .join("\n");
 
-function tokenize(text: string): string[] {
-  return normalize(text)
-    .split(" ")
-    .filter((token) => token.length > 1 && !STOP_WORDS.has(token));
-}
-
-type ScoredItem = {
-  item: SupportKnowledgeItem;
-  score: number;
-};
-
-function hasAny(haystack: string, needles: string[]): boolean {
-  return needles.some((needle) => haystack.includes(needle));
-}
-
-function intentBoost(item: SupportKnowledgeItem, normalizedQuestion: string): number {
-  const asksAboutChannels = hasAny(normalizedQuestion, ["kanal", "kanaler"]);
-
-  if (
-    item.id === "tilleggskanaler" &&
-    asksAboutChannels &&
-    hasAny(normalizedQuestion, ["tillegg", "tilleggskanal", "tilleggskanaler", "ekstra"])
-  ) {
-    return 12;
-  }
-
-  if (
-    item.id === "himepakken-kanaler" &&
-    asksAboutChannels &&
-    hasAny(normalizedQuestion, ["himepakken", "grunnpakken", "himepakke"])
-  ) {
-    return 10;
-  }
-
-  if (
-    item.id === "himepakken-innhold" &&
-    hasAny(normalizedQuestion, ["himepakken", "himepakke"]) &&
-    hasAny(normalizedQuestion, ["inngar", "inkludert", "med"]) 
-  ) {
-    return 11;
-  }
-
-  if (
-    item.id === "tilleggskanaler-pris" &&
-    hasAny(normalizedQuestion, ["tillegg", "tilleggskanal", "tilleggskanaler", "ekstra"]) &&
-    hasAny(normalizedQuestion, ["pris", "koster", "kostnad"]) 
-  ) {
-    return 12;
-  }
-
-  if (
-    item.id === "sportspakker-pris" &&
-    hasAny(normalizedQuestion, ["sport", "sportspakke", "sportspakker", "premium"]) &&
-    hasAny(normalizedQuestion, ["pris", "koster", "kostnad"]) 
-  ) {
-    return 12;
-  }
-
-  return 0;
-}
-
-function scoreKnowledge(question: string): ScoredItem[] {
-  const tokens = tokenize(question);
-
-  if (tokens.length === 0) {
-    return supportKnowledge.map((item) => ({ item, score: 0 }));
-  }
-
-  const normalizedQuestion = normalize(question);
-
-  const scored: ScoredItem[] = supportKnowledge.map((item) => {
-    const keywordScore = item.keywords.reduce((sum, keyword) => {
-      const normalizedKeyword = normalize(keyword);
-      const containsKeyword = normalizedQuestion.includes(normalizedKeyword);
-      return sum + (containsKeyword ? 3 : 0);
-    }, 0);
-
-    const overlapScore = tokens.reduce((sum, token) => {
-      const tokenMatches = item.keywords.some((keyword) => normalize(keyword).includes(token));
-      return sum + (tokenMatches ? 1 : 0);
-    }, 0);
-
-    const boost = intentBoost(item, normalizedQuestion);
-
-    return {
-      item,
-      score: keywordScore + overlapScore + boost,
-    };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-  return scored;
-}
-
-export function getRelevantSupportKnowledge(question: string, limit = 4): SupportKnowledgeItem[] {
-  const scored = scoreKnowledge(question);
-  const withHits = scored.filter((entry) => entry.score > 0).slice(0, limit).map((entry) => entry.item);
-
-  if (withHits.length > 0) {
-    return withHits;
-  }
-
-  return supportKnowledge.slice(0, limit);
-}
-
-export function findSupportAnswer(question: string): {
-  best: SupportKnowledgeItem | null;
-  confidence: "high" | "medium" | "low";
-  suggestions: SupportKnowledgeItem[];
-} {
-  const tokens = tokenize(question);
-
-  if (tokens.length === 0) {
-    return {
-      best: null,
-      confidence: "low",
-      suggestions: supportKnowledge.slice(0, 3),
-    };
-  }
-
-  const scored = scoreKnowledge(question);
-
-  const best = scored[0];
-  const suggestions = scored.slice(1, 4).map((entry) => entry.item);
-
-  if (!best || best.score <= 0) {
-    return {
-      best: null,
-      confidence: "low",
-      suggestions: supportKnowledge.slice(0, 3),
-    };
-  }
-
-  if (best.score >= 5) {
-    return { best: best.item, confidence: "high", suggestions };
-  }
-
-  if (best.score >= 3) {
-    return { best: best.item, confidence: "medium", suggestions };
-  }
-
-  return { best: best.item, confidence: "low", suggestions };
+      return [
+        `Kilde ${index + 1}: ${item.title}`,
+        `Informasjon: ${item.answer}`,
+        links ? `Lenker:\n${links}` : "Lenker: Ingen",
+      ].join("\n");
+    })
+    .join("\n\n---\n\n");
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Bot, Send, User, Loader2 } from "lucide-react";
 
@@ -44,11 +44,13 @@ function confidenceClass(level?: "high" | "medium" | "low"): string {
 export function SupportAgent() {
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "init",
       role: "assistant",
-      text: "Hei! Jeg er Hime-assistenten. Still et kundesporsmal, sa finner jeg riktig hjelpeside eller kontaktvei.",
+      text: "Hei! Jeg er Hime-assistenten. Jeg kan hjelpe deg med alle våre tjenester og guider. Hva lurer du på?",
     },
   ]);
 
@@ -59,19 +61,30 @@ export function SupportAgent() {
     return "Tips: skriv kort og konkret, f.eks. 'svart skjerm' eller 'faktura'.";
   }, [isLoading]);
 
+  // Auto-scroll to bottom when messages change or loading state changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
   async function askSupportAgent(rawQuestion: string) {
     const userText = rawQuestion.trim();
     if (!userText) return;
 
     setIsLoading(true);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-user`,
-        role: "user",
-        text: userText,
-      },
-    ]);
+    
+    const newUserMessage: ChatMessage = {
+      id: `${Date.now()}-user`,
+      role: "user",
+      text: userText,
+    };
+    
+    // Create the updated messages array to send to the API
+    // We filter out any previous error messages so they don't pollute context
+    const chatHistory = [...messages.filter(m => !m.id.endsWith("-error")), newUserMessage];
+    
+    setMessages((prev) => [...prev, newUserMessage]);
 
     try {
       const response = await fetch("/api/support-agent", {
@@ -79,7 +92,9 @@ export function SupportAgent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question: userText }),
+        body: JSON.stringify({ 
+          messages: chatHistory.map(m => ({ role: m.role, text: m.text }))
+        }),
       });
 
       const data = (await response.json()) as SupportResponse;
@@ -106,7 +121,7 @@ export function SupportAgent() {
         {
           id: `${Date.now()}-error`,
           role: "assistant",
-          text: "Jeg fikk ikke hentet svar akkurat na. Prøv igjen, eller bruk Kontakt oss.",
+          text: "Jeg fikk ikke hentet svar akkurat nå. Prøv igjen, eller bruk Kontakt oss.",
           links: [{ label: "Kontakt oss", href: "/kontakt-oss" }],
           confidence: "low",
         },
@@ -134,13 +149,16 @@ export function SupportAgent() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold">Kundeservice-agent</h2>
-                <p className="text-white/85 text-sm">Svarer med informasjon fra Hime sine hjelpesider.</p>
+                <p className="text-white/85 text-sm">Svarer raskt med informasjon fra våre systemer.</p>
               </div>
             </div>
           </div>
 
           <div className="p-6 md:p-8">
-            <div className="space-y-4 max-h-90 overflow-y-auto pr-1">
+            <div 
+              ref={scrollRef}
+              className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scroll-smooth"
+            >
               {messages.map((message) => {
                 const isAssistant = message.role === "assistant";
 
@@ -150,7 +168,7 @@ export function SupportAgent() {
                     className={`rounded-2xl border px-4 py-3 ${
                       isAssistant
                         ? "border-[#DCE7EA] bg-[#FAFCFC]"
-                        : "border-[#FFE0DA] bg-[radial-gradient(165%_190%_at_50%_-60%,#ffede9_0%,#ffe0da_55%,#ffcfc7_100%)]"
+                        : "border-[#FFE0DA] bg-[radial-gradient(165%_190%_at_50%_-60%,#ffede9_0%,#ffe0da_55%,#ffcfc7_100%)] ml-8"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -162,7 +180,7 @@ export function SupportAgent() {
                         {isAssistant ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-dark leading-relaxed">{message.text}</p>
+                        <p className="text-dark leading-relaxed whitespace-pre-wrap">{message.text}</p>
                         {message.confidence ? (
                           <span
                             className={`inline-flex mt-3 text-xs px-2.5 py-1 rounded-full ${confidenceClass(message.confidence)}`}
@@ -193,6 +211,22 @@ export function SupportAgent() {
                   </article>
                 );
               })}
+              
+              {/* Typing Indicator */}
+              {isLoading && (
+                <article className="rounded-2xl border border-[#DCE7EA] bg-[#FAFCFC] px-4 py-3 w-fit">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-teal-light text-dark flex items-center justify-center shrink-0">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-1.5 h-6 px-2">
+                      <span className="w-1.5 h-1.5 bg-dark/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-1.5 h-1.5 bg-dark/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-1.5 h-1.5 bg-dark/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  </div>
+                </article>
+              )}
             </div>
 
             <div className="mt-6">
@@ -203,17 +237,17 @@ export function SupportAgent() {
                   type="text"
                   placeholder="Skriv sporsmalet ditt her..."
                   className="flex-1 rounded-xl border border-[#CBDADD] px-4 py-3 text-dark focus:outline-none focus:ring-2 focus:ring-teal/40"
+                  disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={!canSend}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[radial-gradient(145%_190%_at_50%_-55%,#ffa79d_0%,#f56f62_45%,#d94843_100%)] text-white px-5 py-3 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[radial-gradient(145%_190%_at_50%_-55%,#ffa79d_0%,#f56f62_45%,#d94843_100%)] text-white px-5 py-3 font-semibold disabled:opacity-60 disabled:cursor-not-allowed min-w-[120px] transition-all"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  Send
+                  {isLoading ? "Tenker..." : "Send"}
                 </button>
               </form>
-              <p className="text-sm text-dark-muted mt-2">{helperText}</p>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">

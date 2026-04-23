@@ -11,6 +11,7 @@ type NavLink = {
 
 const navLinks: NavLink[] = [
   { href: "/produkter-og-priser", label: "Produkter og priser" },
+  { href: "/tv-guide", label: "TV-guide" },
   { href: "/kundeservice", label: "Kundeservice" },
   { href: "/driftsmeldinger", label: "Driftsmeldinger" },
   { href: "/kontakt-oss", label: "Kontakt oss" },
