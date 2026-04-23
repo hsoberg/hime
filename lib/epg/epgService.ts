@@ -102,8 +102,16 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
   }
 
   try {
-    const url = `https://tvguide.vg.no/kanal/${slug}?date=${dateStr}`;
-    const res = await fetch(url);
+    // Add cache-busting and a realistic user agent
+    const url = `https://tvguide.vg.no/kanal/${slug}?date=${dateStr}&v=${Date.now()}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      next: { revalidate: 600 }
+    });
+    
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const text = await res.text();
     
     const match = text.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
@@ -115,10 +123,7 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
     if (!listings || !Array.isArray(listings)) return null;
 
     const programs: Program[] = listings.map((item: any) => {
-      // Extract title: sometimes it's a string, sometimes an object with a title property
       const title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
-      
-      // Extract description: favor episode overview if available, fallback to item description
       const description = item.episode?.overview || item.description || "Ingen beskrivelse tilgjengelig.";
 
       return {
@@ -173,6 +178,7 @@ function generateDaySchedule(channelName: string, date: Date): Program[] {
 }
 
 export async function getFullTvGuide(channels: { name: string; logo?: string; category: string }[], dateStr?: string): Promise<ChannelSchedule[]> {
+  // Ensure we handle date properly, especially for today
   const date = dateStr ? new Date(dateStr) : new Date();
   
   const results = await Promise.all(channels.map(async (ch) => {
