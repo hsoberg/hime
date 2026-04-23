@@ -123,7 +123,25 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
     if (!listings || !Array.isArray(listings)) return null;
 
     const programs: Program[] = listings.map((item: any) => {
-      const title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
+      let title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
+      
+      // Fix for titles that are just dates (common on news/sports channels)
+      if (title.match(/\d{2}\.\d{2}\.\d{4}/)) {
+        const slugTitle = item.title?.slug || item.slug;
+        if (slugTitle && typeof slugTitle === 'string') {
+          // Convert "sykkel-flandern-rundt-1" to "Sykkel Flandern Rundt"
+          title = slugTitle
+            .replace(/-/g, ' ')
+            .replace(/\d+$/, '') // Remove trailing numbers
+            .trim()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        } else {
+          title = `${channelName} Nyheter`;
+        }
+      }
+
       const description = item.episode?.overview || item.description || "Ingen beskrivelse tilgjengelig.";
 
       return {
