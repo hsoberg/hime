@@ -110,13 +110,20 @@ export function TvGuideGrid() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeChannel, setActiveChannel] = useState<ChannelSchedule | null>(null);
+  const [now, setNow] = useState(new Date());
+
+  // Update "now" every minute to keep progress bars and live status accurate
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const dates = useMemo(() => {
     const arr = [];
-    const now = new Date();
+    const today = new Date();
     for (let i = 0; i < 7; i++) {
-      const d = new Date(now);
-      d.setDate(now.getDate() + i);
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
       arr.push({
         day: i === 0 ? "I dag" : i === 1 ? "I morgen" : d.toLocaleDateString("no-NO", { weekday: 'short' }),
         date: d.toLocaleDateString("no-NO", { day: 'numeric', month: 'short' }),
@@ -231,6 +238,7 @@ export function TvGuideGrid() {
               <ChannelRow 
                 key={channel.id} 
                 channel={channel} 
+                now={now}
                 searchQuery={searchQuery}
                 isToday={selectedDate === new Date().toISOString().split('T')[0]}
                 onOpenSchedule={() => setActiveChannel(channel)}
@@ -259,9 +267,7 @@ export function TvGuideGrid() {
   );
 }
 
-function ChannelRow({ channel, searchQuery, isToday, onOpenSchedule }: { channel: ChannelSchedule; searchQuery: string; isToday: boolean; onOpenSchedule: () => void }) {
-  const now = new Date();
-  
+function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { channel: ChannelSchedule; now: Date; searchQuery: string; isToday: boolean; onOpenSchedule: () => void }) {
   // Find search match if applicable
   const searchMatch = useMemo(() => {
     if (!searchQuery) return null;
@@ -269,14 +275,15 @@ function ChannelRow({ channel, searchQuery, isToday, onOpenSchedule }: { channel
     return channel.programs.find(p => p.title.toLowerCase().includes(q));
   }, [channel.programs, searchQuery]);
 
-  // Find current program
+  // Find current program with robust time comparison
   const currentProgram = useMemo(() => {
+    const currentTime = now.getTime();
     return channel.programs.find(p => {
-      const start = new Date(p.start);
-      const end = new Date(p.end);
-      return now >= start && now < end;
+      const start = new Date(p.start).getTime();
+      const end = new Date(p.end).getTime();
+      return currentTime >= start && currentTime < end;
     }) || (isToday ? null : channel.programs[0]);
-  }, [channel.programs, isToday]);
+  }, [channel.programs, isToday, now]);
 
   // Determine what to feature: search match or current program
   const featuredProgram = searchMatch || currentProgram;
