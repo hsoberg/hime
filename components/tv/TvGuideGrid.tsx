@@ -44,6 +44,13 @@ export function TvGuideGrid() {
     }
 
     fetchGuide();
+
+    // Auto-refresh every 60 seconds to update progress bars and live status
+    const interval = setInterval(() => {
+      fetchGuide();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [selectedDate, selectedCategory]);
 
   const filteredChannels = useMemo(() => {

@@ -1,116 +1,109 @@
-export type Program = {
-  title: string;
-  start: string; // ISO string
-  end: string;   // ISO string
-  description?: string;
-  image?: string;
-  category?: string;
-};
+import { Program, ChannelSchedule } from './types';
 
-export type ChannelSchedule = {
-  id: string;
-  name: string;
-  logo?: string;
-  category: string;
-  programs: Program[];
+// Mapping from Hime channel names to VG slugs
+const CHANNEL_SLUGS: Record<string, string> = {
+  "NRK1": "nrk1",
+  "TV 2 Direkte": "tv2-direkte",
+  "TVNorge": "tvnorge",
+  "TV3": "tv3",
+  "NRK2": "nrk2",
+  "TV 2 Nyheter": "tv2-nyhetskanalen",
+  "TV 2 Zebra": "tv2-zebra",
+  "NRK3": "nrk3",
+  "REX": "max",
+  "TV3+": "viasat-4",
+  "FEM": "fem",
+  "TLC": "tlc",
+  "Eurosport 1": "eurosport-norge",
+  "V Sport 1": "v-sport-1",
+  "National Geographic": "national-geographic-channel",
+  "History": "history-channel",
+  "TV 2 Livsstil": "tv2-livsstil",
+  "TV6": "tv6",
+  "VOX": "vox",
+  "TV 2 Sport 1": "tv2-sport-1",
+  "TV 2 Sport 2": "tv2-sport-2",
+  "Animal Planet": "animal-planet",
+  "Al Jazeera English": "al-jazeera",
+  "BBC Earth": "bbc-earth",
+  "BBC Nordic": "bbc-nordic",
+  "BBC World News": "bbc-world",
 };
 
 const CATEGORIES: Record<string, string[]> = {
-  "Nyheter": ["Dagsrevyen", "Nyhetene", "Kveldsnytt", "BBC World News", "Global Report", "Debatten", "Urix"],
-  "Underholdning": ["Senkveld", "Lindmo", "Mesternes Mester", "Kompani Lauritzen", "Farmen", "71 grader nord", "Exit", "Hver gang vi møtes"],
-  "Sport": ["Champions League", "Vinterstudio", "Premier League", "Tippeligaen Live", "Formel 1: Kvalifisering", "Sykkel: Tour de France", "Handball: Eliteserien"],
-  "Barn": ["Fantorangen", "Peppa Gris", "Paw Patrol", "Brannmann Sam", "Postmann Pat", "NRK Super", "Disney klassikere"],
-  "Dokumentar": ["Brennpunkt", "Planet Earth", "History Uncovered", "Inside the Factory", "Vår utrolige verden", "Folk i Modum"],
+  "Underholdning": ["Alle mot alle", "Kongen befaler", "71 grader nord", "Bloggerne", "Kompani Lauritzen", "Hver gang vi møtes", "Lindmo", "Nytt på nytt", "Beat for beat", "MasterChef", "The Voice"],
+  "Nyheter": ["Dagsrevyen", "Dagsnytt 18", "Nyhetsmorgen", "Kveldsnytt", "TV 2 Nyhetene", "Distriktsnyheter", "Debatten", "Urix", "CNN Newsroom", "BBC World News"],
+  "Sport": ["Eliteserien", "Premier League", "Champions League", "Vintersport", "Hoppuka", "Skiskyting", "Formel 1", "Tour de France", "Håndball-EM", "Golf: PGA Tour", "Tennis: Grand Slam"],
+  "Dokumentar": ["Brennpunkt", "Folkeopplysningen", "Planet Earth", "Our Planet", "The Last Dance", "Life on Our Planet", "History 101", "How It's Made", "Air Crash Investigation"],
+  "Film": ["The Godfather", "Pulp Fiction", "Inception", "The Dark Knight", "Forrest Gump", "Parasite", "Interstellar", "The Matrix", "Cinema Paradiso", "Fight Club"],
+  "Barn": ["Fantorangen", "Supernytt", "Peppa Gris", "Paw Patrol", "Brannmann Sam", "Postmann Pat", "Pysjamasheltene", "Mikkes Klubbhus", "Dora utforskeren"]
 };
 
-// Deterministic random generator for consistent mock data
+// In-memory cache for EPG data
+const epgCache: Record<string, { data: Program[], timestamp: number }> = {};
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 function seedRandom(seed: string) {
   let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
-  }
+  for (let i = 0; i < seed.length; i++) h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
   return function() {
-    h = (Math.imul(h, 48271) % 2147483647) | 0;
-    return (h & 0x7fffffff) / 2147483647;
+    h = Math.imul(31, h) + (h >>> 16) | 0;
+    return (h >>> 0) / 4294967296;
   };
 }
 
-const REAL_PROGRAMS: Record<string, { time: string; title: string; desc: string }[]> = {
-  "NRK1": [
-    { time: "13:00", title: "NRK Nyheter", desc: "Siste nytt fra NRKs nyhetsredaksjon." },
-    { time: "14:00", title: "NRK Nyheter", desc: "Siste nytt fra NRKs nyhetsredaksjon." },
-    { time: "15:00", title: "NRK Nyheter 15", desc: "Siste nytt fra NRKs nyhetsredaksjon." },
-    { time: "16:00", title: "NRK Nyheter", desc: "Siste nytt fra NRKs nyhetsredaksjon." },
-    { time: "17:00", title: "NRK Nyheter", desc: "Siste nytt fra NRKs nyhetsredaksjon." },
-    { time: "18:00", title: "Dagsnytt 18", desc: "Dagens viktigste debatter, intervjuer og kommentarer direkte fra radiostudio." },
-    { time: "19:00", title: "Dagsrevyen", desc: "Siste nytt fra NRKs nyhetsredaksjon med sport og vær." },
-    { time: "19:45", title: "Distriktsnyheter", desc: "Nyheter fra der du bor." },
-    { time: "20:00", title: "Hodet over vannet", desc: "Dokumentar om store konsekvenser og vanskelige valg." },
-    { time: "21:00", title: "Dagsrevyen 21", desc: "Siste nytt fra NRKs nyhetsredaksjon med sport og vær." },
-    { time: "21:20", title: "Debatten", desc: "Fredrik Solvang inviterer til direktesendt debatt om ukas viktigste temaer." },
-    { time: "22:15", title: "Det sit i veggane", desc: "Historier om gamle hus og menneskene som bodde der." },
-    { time: "23:00", title: "Kveldsnytt", desc: "Siste nytt fra NRKs nyhetsredaksjon med sport og vær." },
-    { time: "23:15", title: "Blue Lights", desc: "Belfast-basert politidrama. Selskapet (s3, ep1)." },
-  ],
-  "TV 2 Direkte": [
-    { time: "11:05", title: "God morgen Norge", desc: "Aktualitetsmagasin med gjester, mat og musikk." },
-    { time: "15:00", title: "Gull eller gråstein", desc: "Dansk livsstilsprogram om gjenbruk og skatter." },
-    { time: "16:00", title: "Nyhetskompaniet", desc: "Nyhetspanel som diskuterer dagens viktigste saker." },
-    { time: "17:30", title: "Tid for hage", desc: "Kjersti Bergesen og teamet forvandler uterommet." },
-    { time: "18:30", title: "Nyhetene", desc: "Siste nytt fra inn- og utland." },
-    { time: "18:50", title: "Været", desc: "Værvarsel for de kommende dagene." },
-    { time: "19:00", title: "TV 2 hjelper deg", desc: "Forbrukerprogrammet som gir deg svar." },
-    { time: "20:00", title: "Kompani Lauritzen", desc: "Kjendiser utfordres av Dag Otto Lauritzen og Kristian Ødegård." },
-    { time: "21:00", title: "Nyhetene", desc: "Siste nytt fra inn- og utland." },
-    { time: "21:20", title: "Været", desc: "Værvarsel for de kommende dagene." },
-    { time: "21:25", title: "Sporten", desc: "Siste sportsnyheter." },
-    { time: "21:40", title: "Bloggerne", desc: "Vi følger norske profiler i deres hverdag." },
-  ],
-  "TVNorge": [
-    { time: "12:50", title: "Alle mot alle", desc: "Jon Almaas og Solveig Kloppen inviterer til quiz-kamp." },
-    { time: "13:50", title: "Solveig og Johns dolce villa", desc: "Solveig Kloppen og John Carew pusser opp i Italia." },
-    { time: "14:45", title: "Brille", desc: "Eivind Hellstrøm og gjester lærer deg ting du ikke visste." },
-    { time: "15:45", title: "Kongen befaler", desc: "Atle Antonsen gir kjendiser absurde oppgaver." },
-    { time: "16:50", title: "Two and a Half Men", desc: "Klassisk amerikansk komedieserie." },
-    { time: "19:30", title: "Gift ved første blikk", desc: "Norske single matches av eksperter." },
-    { time: "20:30", title: "71 grader nord - Team", desc: "Kjendis-duoer kjemper seg gjennom norsk natur." },
-  ]
-};
+function getCategoryMapping(name: string): string {
+  if (name.includes("Sport") || name.includes("Eurosport") || name.includes("3+")) return "Sport";
+  if (name.includes("News") || name.includes("Nyheter") || name.includes("Al Jazeera")) return "Nyheter";
+  if (name.includes("Discovery") || name.includes("National") || name.includes("History") || name.includes("Earth")) return "Dokumentar";
+  if (name.includes("Nickelodeon") || name.includes("Super") || name.includes("Nick Jr")) return "Barn";
+  return "Underholdning";
+}
+
+async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] | null> {
+  const slug = CHANNEL_SLUGS[channelName];
+  if (!slug) return null;
+
+  const dateStr = date.toISOString().split('T')[0];
+  const cacheKey = `${channelName}-${dateStr}`;
+
+  if (epgCache[cacheKey] && (Date.now() - epgCache[cacheKey].timestamp < CACHE_TTL)) {
+    return epgCache[cacheKey].data;
+  }
+
+  try {
+    const url = `https://tvguide.vg.no/kanal/${slug}?date=${dateStr}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    
+    const match = text.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
+    if (!match) return null;
+
+    const json = JSON.parse(match[1]);
+    const listings = json.props.pageProps.initialTvSchedule?.listings;
+
+    if (!listings || !Array.isArray(listings)) return null;
+
+    const programs: Program[] = listings.map((item: any) => ({
+      title: item.title,
+      start: item.startsAt,
+      end: item.endsAt,
+      category: getCategoryMapping(channelName),
+      description: item.description || "Ingen beskrivelse tilgjengelig."
+    }));
+
+    epgCache[cacheKey] = { data: programs, timestamp: Date.now() };
+    return programs;
+  } catch (error) {
+    console.error(`Failed to fetch real EPG for ${channelName}:`, error);
+    return null;
+  }
+}
 
 function generateDaySchedule(channelName: string, date: Date): Program[] {
   const channelCategory = getCategoryMapping(channelName);
   const titles = CATEGORIES[channelCategory] || CATEGORIES["Underholdning"];
   
-  // Use real data if available for today
-  const isToday = new Date().toISOString().split('T')[0] === date.toISOString().split('T')[0];
-  const realPrograms = isToday ? REAL_PROGRAMS[channelName] : null;
-
-  if (realPrograms) {
-    return realPrograms.map((rp, i) => {
-      const nextRp = realPrograms[i + 1];
-      const start = new Date(date);
-      const [h, m] = rp.time.split(':').map(Number);
-      start.setHours(h, m, 0, 0);
-      
-      const end = new Date(start);
-      if (nextRp) {
-        const [nh, nm] = nextRp.time.split(':').map(Number);
-        end.setHours(nh, nm, 0, 0);
-      } else {
-        end.setHours(end.getHours() + 1);
-      }
-      
-      return {
-        title: rp.title,
-        start: start.toISOString(),
-        end: end.toISOString(),
-        category: channelCategory,
-        description: rp.desc,
-      };
-    });
-  }
-
-  // Fallback to deterministic generation
   const seed = `${channelName}-${date.toISOString().split('T')[0]}`;
   const random = seedRandom(seed);
   
@@ -134,30 +127,27 @@ function generateDaySchedule(channelName: string, date: Date): Program[] {
       start: start.toISOString(),
       end: end.toISOString(),
       category: channelCategory,
-      description: `${title} er et populært program i kategorien ${channelCategory.toLowerCase()}. Denne sendingen starter ${start.toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" })}.`,
+      description: `${title} er et populært program i kategorien ${channelCategory.toLowerCase()}.`,
     });
   }
   
   return programs;
 }
 
-function getCategoryMapping(name: string): string {
-  if (name.includes("NRK1") || name.includes("TV 2 Direkte") || name.includes("TVNorge") || name.includes("TV3")) return "Underholdning";
-  if (name.includes("Sport") || name.includes("Eurosport") || name.includes("3+")) return "Sport";
-  if (name.includes("News") || name.includes("Nyheter") || name.includes("CNN") || name.includes("Sky")) return "Nyheter";
-  if (name.includes("Discovery") || name.includes("National") || name.includes("Nat Geo") || name.includes("Viasat Explore")) return "Dokumentar";
-  if (name.includes("Nickelodeon") || name.includes("Super") || name.includes("Nick Jr") || name.includes("Cartoon")) return "Barn";
-  return "Underholdning";
-}
-
 export async function getFullTvGuide(channels: { name: string; logo?: string; category: string }[], dateStr?: string): Promise<ChannelSchedule[]> {
   const date = dateStr ? new Date(dateStr) : new Date();
   
-  return channels.map(ch => ({
-    id: ch.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-    name: ch.name,
-    logo: ch.logo,
-    category: ch.category,
-    programs: generateDaySchedule(ch.name, date),
+  const results = await Promise.all(channels.map(async (ch) => {
+    const realPrograms = await fetchRealEpg(ch.name, date);
+    
+    return {
+      id: ch.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+      name: ch.name,
+      logo: ch.logo,
+      category: ch.category,
+      programs: realPrograms && realPrograms.length > 0 ? realPrograms : generateDaySchedule(ch.name, date),
+    };
   }));
+
+  return results;
 }
