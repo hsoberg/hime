@@ -275,14 +275,33 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
     return channel.programs.find(p => p.title.toLowerCase().includes(q));
   }, [channel.programs, searchQuery]);
 
-  // Find current program with robust time comparison
+  // Find current program with MUCH more robust logic
   const currentProgram = useMemo(() => {
+    if (!channel.programs || channel.programs.length === 0) return null;
+    
     const currentTime = now.getTime();
-    return channel.programs.find(p => {
+    
+    // 1. Try to find the exact live match
+    const liveMatch = channel.programs.find(p => {
       const start = new Date(p.start).getTime();
       const end = new Date(p.end).getTime();
       return currentTime >= start && currentTime < end;
-    }) || (isToday ? null : channel.programs[0]);
+    });
+
+    if (liveMatch) return liveMatch;
+
+    // 2. If it's "Today", and no exact match, find the nearest program
+    if (isToday) {
+      // Find the first program that hasn't ended yet
+      const upcoming = channel.programs.find(p => new Date(p.end).getTime() > currentTime);
+      if (upcoming) return upcoming;
+
+      // If all programs have ended, show the last one
+      return channel.programs[channel.programs.length - 1];
+    }
+
+    // 3. If not today, just show the first one of that day
+    return channel.programs[0];
   }, [channel.programs, isToday, now]);
 
   // Determine what to feature: search match or current program

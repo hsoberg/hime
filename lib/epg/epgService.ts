@@ -123,11 +123,14 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
     if (!listings || !Array.isArray(listings)) return null;
 
     // Filter listings to ensure they cover the requested date
-    // We keep a bit of padding (3 hours before/after) to handle late night programs
-    const startOfRequestedDay = new Date(date);
-    startOfRequestedDay.setHours(0, 0, 0, 0);
-    const endOfRequestedDay = new Date(startOfRequestedDay);
-    endOfRequestedDay.setDate(endOfRequestedDay.getDate() + 1);
+    // We use a generous window to handle timezone offsets and late night programs
+    const requestedDate = new Date(date);
+    requestedDate.setHours(0, 0, 0, 0);
+    
+    // Day starts at local 00:00 and ends at local 00:00 next day
+    // We allow 4 hours overlap on each side for safety
+    const startWindow = new Date(requestedDate.getTime() - 4 * 60 * 60 * 1000);
+    const endWindow = new Date(requestedDate.getTime() + 28 * 60 * 60 * 1000);
 
     const programs: Program[] = listings
       .map((item: any) => {
@@ -160,11 +163,12 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
         };
       })
       .filter(p => {
-        // Keep program if it overlaps with the requested day
         const pStart = new Date(p.start);
         const pEnd = new Date(p.end);
-        return pEnd > startOfRequestedDay && pStart < endOfRequestedDay;
+        return pEnd > startWindow && pStart < endWindow;
       });
+
+    if (programs.length === 0) return null;
 
     if (programs.length === 0) return null;
 
