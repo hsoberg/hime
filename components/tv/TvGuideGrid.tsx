@@ -162,7 +162,7 @@ export function TvGuideGrid() {
   return (
     <div className="max-w-7xl mx-auto px-4">
       {/* Search and Navigation Bar */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-6 mb-12 shadow-2xl shadow-indigo-900/5 sticky top-24 z-40">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-6 mb-12 shadow-2xl shadow-indigo-900/5 z-40">
         <div className="flex flex-col xl:flex-row gap-6 items-stretch xl:items-center">
           
           {/* Main Search Input */}
