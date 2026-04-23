@@ -1,4 +1,5 @@
-export type { Program, ChannelSchedule } from './types';
+import { Program, ChannelSchedule } from './types';
+export type { Program, ChannelSchedule };
 
 // Mapping from Hime channel names to VG slugs
 const CHANNEL_SLUGS: Record<string, string> = {
@@ -214,7 +215,7 @@ function generateDaySchedule(channelName: string, date: Date): Program[] {
   return programs;
 }
 
-export async function getFullTvGuide(channels: { name: string; logo?: string; category: string }[], dateStr?: string): Promise<ChannelSchedule[]> {
+export async function getFullTvGuide(channels: { name: string; desc?: string; logo?: string; category: string }[], dateStr?: string): Promise<ChannelSchedule[]> {
   // Ensure we handle date properly, especially for today
   const date = dateStr ? new Date(dateStr) : new Date();
   
@@ -224,7 +225,8 @@ export async function getFullTvGuide(channels: { name: string; logo?: string; ca
     return {
       id: ch.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
       name: ch.name,
-      logo: ch.logo,
+      logo: ch.logo || "",
+      desc: ch.desc || "Ingen beskrivelse.",
       category: ch.category,
       programs: realPrograms && realPrograms.length > 0 ? realPrograms : generateDaySchedule(ch.name, date),
     };
