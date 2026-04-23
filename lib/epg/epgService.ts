@@ -1,4 +1,4 @@
-import { Program, ChannelSchedule } from './types';
+export type { Program, ChannelSchedule } from './types';
 
 // Mapping from Hime channel names to VG slugs
 const CHANNEL_SLUGS: Record<string, string> = {
