@@ -13,9 +13,9 @@ export const channelLogos: Record<string, string> = {
   "TVNorge": "https://hime.no/wp-content/uploads/2024/02/TVNorge.png",
   "TV3": "https://hime.no/wp-content/uploads/2024/11/TV3_Norway_logo_2016.svg",
   "FEM": "https://hime.no/wp-content/uploads/2024/02/FEM.png",
-  "REX": "https://hime.no/wp-content/uploads/2024/03/REX.png",
+  "MAX": "https://hime.no/wp-content/uploads/2024/03/REX.png",
   "VOX": "https://hime.no/wp-content/uploads/2024/02/Vox.png",
-  "3+": "https://hime.no/wp-content/uploads/2024/11/TV3_Norway.svg",
+  "Viasat 4": "https://hime.no/wp-content/uploads/2024/11/TV3_Norway.svg",
   "TV6": "https://hime.no/wp-content/uploads/2023/05/TV6.png",
   "TV 2 Zebra": "https://hime.no/wp-content/uploads/2023/05/TV2-Zebra.png",
   "TV 2 Livsstil": "https://hime.no/wp-content/uploads/2023/05/TV2-Livsstil.png",
@@ -69,6 +69,15 @@ export const channelLogos: Record<string, string> = {
   "TV Visjon Norge": "https://hime.no/wp-content/uploads/2023/05/Visjon-Norge.png",
   "KANAL 10": "https://hime.no/wp-content/uploads/2023/05/kanal10norge.png",
   "Bedehuskanalen": "https://hime.no/wp-content/uploads/2023/05/bedehuskanalen.png",
+  "V sport 1": "https://hime.no/wp-content/uploads/2023/05/V-Sport-1.png",
+  "V sport 2": "https://hime.no/wp-content/uploads/2023/05/V-Sport-2.png",
+  "V sport 3": "https://hime.no/wp-content/uploads/2023/05/V-Sport-3.png",
+  "V sport +": "https://hime.no/wp-content/uploads/2023/05/V-Sport-Plus.png",
+  "V sport golf": "https://hime.no/wp-content/uploads/2023/05/V-Sport-Golf.png",
+  "V film premiere": "https://hime.no/wp-content/uploads/2023/05/V-Film-Premiere.png",
+  "V film action": "https://hime.no/wp-content/uploads/2023/05/V-Film-Action.png",
+  "V film family": "https://hime.no/wp-content/uploads/2023/05/V-Film-Family.png",
+  "V film hits": "https://hime.no/wp-content/uploads/2023/05/V-Film-Hits.png",
 };
 
 export const baseChannels: Channel[] = [
@@ -79,9 +88,9 @@ export const baseChannels: Channel[] = [
   { name: "TVNorge", desc: "Familie, serier og reality", category: "Grunnpakke" },
   { name: "TV3", desc: "Film, serier og dokumentar", category: "Grunnpakke" },
   { name: "FEM", desc: "Underholdning for moderne kvinner", category: "Grunnpakke" },
-  { name: "REX", desc: "Action og sport for menn", category: "Grunnpakke" },
+  { name: "MAX", desc: "Action og sport for menn", category: "Grunnpakke" },
   { name: "VOX", desc: "Britiske serier og krim for voksne", category: "Grunnpakke" },
-  { name: "3+", desc: "Maskulin underholdning og UEFA-sport", category: "Grunnpakke" },
+  { name: "Viasat 4", desc: "Maskulin underholdning og UEFA-sport", category: "Grunnpakke" },
   { name: "TV6", desc: "Livsstil for kvinner 35–49", category: "Grunnpakke" },
   { name: "TV 2 Zebra", desc: "Fotball og maskulin underholdning", category: "Grunnpakke" },
   { name: "TV 2 Livsstil", desc: "Livsstil og hverdagsmagasin", category: "Grunnpakke" },
@@ -106,18 +115,41 @@ export const addonChannels: Channel[] = [
   { name: "TV4", desc: "Svensk familie-TV", category: "Nordiske" },
   { name: "TV2 Danmark", desc: "Dansk familiunderholdning", category: "Nordiske" },
   { name: "DR1", desc: "Kultur og bredt dansk programtilbud", category: "Nordiske" },
+  { name: "DR2", desc: "Dansk samfunn og kultur", category: "Nordiske" },
   // Dokumentar
   { name: "National Geographic", desc: "Vitenskap og utforskning", category: "Dokumentar" },
   { name: "Nat Geo Wild", desc: "Dyr og natur daglig", category: "Dokumentar" },
   { name: "Viasat Explore", desc: "Ekspedisjoner og eventyr", category: "Dokumentar" },
+  { name: "Viasat History", desc: "Historiske begivenheter", category: "Dokumentar" },
+  { name: "Viasat Nature", desc: "Naturdokumentarer", category: "Dokumentar" },
+  { name: "Discovery Science", desc: "Vitenskap og teknologi", category: "Dokumentar" },
+  { name: "Travel Channel", desc: "Reiseprogrammer fra hele verden", category: "Dokumentar" },
   // Musikk
   { name: "MTV", desc: "Musikk og underholdning for unge", category: "Musikk" },
+  { name: "Mezzo", desc: "Klassisk musikk og jazz", category: "Musikk" },
   // Barn
   { name: "Nick Jr.", desc: "Førskoleprogrammer", category: "Barn" },
   { name: "Cartoon Network", desc: "Animasjon for alle aldre", category: "Barn" },
+  { name: "DR Ramasjang", desc: "Dansk barne-TV", category: "Barn" },
   // Nyheter
   { name: "CNN International", desc: "Globale nyheter 24/7", category: "Nyheter" },
   { name: "Sky News", desc: "Britiske nyheter 24 timer", category: "Nyheter" },
+  { name: "CNBC", desc: "Finansnyheter", category: "Nyheter" },
+  { name: "Bloomberg", desc: "Globale finansnyheter", category: "Nyheter" },
 ].map(ch => ({ ...ch, logo: channelLogos[ch.name] }));
 
-export const allChannels = [...baseChannels, ...addonChannels];
+export const premiumChannels: Channel[] = [
+  // Sport Premium
+  { name: "V sport 1", desc: "Premium sportssendinger", category: "Sport" },
+  { name: "V sport 2", desc: "Premium sportssendinger", category: "Sport" },
+  { name: "V sport 3", desc: "Premium sportssendinger", category: "Sport" },
+  { name: "V sport +", desc: "Premium sportssendinger", category: "Sport" },
+  { name: "V sport golf", desc: "Golf døgnet rundt", category: "Sport" },
+  // Film Premium
+  { name: "V film premiere", desc: "De nyeste storfilmene", category: "Film" },
+  { name: "V film action", desc: "Actionfylte filmer", category: "Film" },
+  { name: "V film family", desc: "Filmer for hele familien", category: "Film" },
+  { name: "V film hits", desc: "De største filmhitene", category: "Film" },
+].map(ch => ({ ...ch, logo: channelLogos[ch.name] }));
+
+export const allChannels = [...baseChannels, ...addonChannels, ...premiumChannels];
