@@ -84,13 +84,21 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
 
     if (!listings || !Array.isArray(listings)) return null;
 
-    const programs: Program[] = listings.map((item: any) => ({
-      title: item.title,
-      start: item.startsAt,
-      end: item.endsAt,
-      category: getCategoryMapping(channelName),
-      description: item.description || "Ingen beskrivelse tilgjengelig."
-    }));
+    const programs: Program[] = listings.map((item: any) => {
+      // Extract title: sometimes it's a string, sometimes an object with a title property
+      const title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
+      
+      // Extract description: favor episode overview if available, fallback to item description
+      const description = item.episode?.overview || item.description || "Ingen beskrivelse tilgjengelig.";
+
+      return {
+        title: title,
+        start: item.startsAt,
+        end: item.endsAt,
+        category: getCategoryMapping(channelName),
+        description: description
+      };
+    });
 
     epgCache[cacheKey] = { data: programs, timestamp: Date.now() };
     return programs;
