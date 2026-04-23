@@ -122,36 +122,51 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
 
     if (!listings || !Array.isArray(listings)) return null;
 
-    const programs: Program[] = listings.map((item: any) => {
-      let title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
-      
-      // Fix for titles that are just dates (common on news/sports channels)
-      if (title.match(/\d{2}\.\d{2}\.\d{4}/)) {
-        const slugTitle = item.title?.slug || item.slug;
-        if (slugTitle && typeof slugTitle === 'string') {
-          // Convert "sykkel-flandern-rundt-1" to "Sykkel Flandern Rundt"
-          title = slugTitle
-            .replace(/-/g, ' ')
-            .replace(/\d+$/, '') // Remove trailing numbers
-            .trim()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-        } else {
-          title = `${channelName} Nyheter`;
+    // Filter listings to ensure they cover the requested date
+    // We keep a bit of padding (3 hours before/after) to handle late night programs
+    const startOfRequestedDay = new Date(date);
+    startOfRequestedDay.setHours(0, 0, 0, 0);
+    const endOfRequestedDay = new Date(startOfRequestedDay);
+    endOfRequestedDay.setDate(endOfRequestedDay.getDate() + 1);
+
+    const programs: Program[] = listings
+      .map((item: any) => {
+        let title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
+        
+        // Fix for titles that are just dates
+        if (title.match(/\d{2}\.\d{2}\.\d{4}/)) {
+          const slugTitle = item.title?.slug || item.slug;
+          if (slugTitle && typeof slugTitle === 'string') {
+            title = slugTitle
+              .replace(/-/g, ' ')
+              .replace(/\d+$/, '')
+              .trim()
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+          } else {
+            title = `${channelName} Nyheter`;
+          }
         }
-      }
 
-      const description = item.episode?.overview || item.description || "Ingen beskrivelse tilgjengelig.";
+        const description = item.episode?.overview || item.description || "Ingen beskrivelse tilgjengelig.";
 
-      return {
-        title: title,
-        start: item.startsAt,
-        end: item.endsAt,
-        category: getCategoryMapping(channelName),
-        description: description
-      };
-    });
+        return {
+          title: title,
+          start: item.startsAt,
+          end: item.endsAt,
+          category: getCategoryMapping(channelName),
+          description: description
+        };
+      })
+      .filter(p => {
+        // Keep program if it overlaps with the requested day
+        const pStart = new Date(p.start);
+        const pEnd = new Date(p.end);
+        return pEnd > startOfRequestedDay && pStart < endOfRequestedDay;
+      });
+
+    if (programs.length === 0) return null;
 
     epgCache[cacheKey] = { data: programs, timestamp: Date.now() };
     return programs;
