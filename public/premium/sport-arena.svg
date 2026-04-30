@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Sportsarena under lys</title>
+  <desc id="desc">En stilisert sportsarena med bane og flomlys, uten laglogoer eller utøvere.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#043f46"/>
+      <stop offset=".62" stop-color="#062f37"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="court" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2ec4a6"/>
+      <stop offset=".55" stop-color="#0f8b7d"/>
+      <stop offset="1" stop-color="#0b5965"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <path d="M88 234c311-98 731-96 1024 0v141c-291-82-713-85-1024 0Z" fill="#ffffff" opacity=".08"/>
+  <g fill="#ffffff" opacity=".72">
+    <rect x="112" y="96" width="176" height="14" rx="7"/>
+    <rect x="912" y="96" width="176" height="14" rx="7"/>
+    <path d="M130 116 62 371h36l76-255ZM1070 116l68 255h-36l-76-255Z"/>
+  </g>
+  <path d="M0 456c181-58 377-87 588-87 226 0 431 29 612 86v265H0Z" fill="url(#court)"/>
+  <g fill="none" stroke="#eafffb" stroke-width="5" opacity=".68">
+    <path d="M62 624c326-83 772-84 1076 0"/>
+    <path d="M124 505c282 47 689 47 952 0"/>
+    <path d="M600 374v346"/>
+    <ellipse cx="600" cy="566" rx="150" ry="54"/>
+    <path d="M244 492v171M956 492v171"/>
+  </g>
+  <g transform="translate(503 366)">
+    <ellipse cx="97" cy="232" rx="124" ry="20" fill="#031d24" opacity=".26"/>
+    <circle cx="97" cy="160" r="70" fill="#ff7d75"/>
+    <path d="M30 142c47 11 94 10 136-2M38 191c40-22 79-34 118-36M92 91c-22 47-25 91-8 132M135 104c-7 45-3 84 13 117" fill="none" stroke="#fff7ef" stroke-width="8" stroke-linecap="round" opacity=".78"/>
+  </g>
+</svg>

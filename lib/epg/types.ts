@@ -4,6 +4,7 @@ export interface Program {
   end: string;
   category: string;
   description: string;
+  source?: "real" | "fallback";
 }
 
 export interface ChannelSchedule {

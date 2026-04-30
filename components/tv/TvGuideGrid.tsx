@@ -1,13 +1,28 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Play, Clock, ChevronRight, Tv, Calendar, Search, X, Info, Star } from "lucide-react";
-import { ChannelSchedule, Program } from "@/lib/epg/epgService";
-import Image from "next/image";
+import { Clock, ChevronRight, Tv, Search, X, Info, Star } from "lucide-react";
+import type { ChannelSchedule, Program } from "@/lib/epg/epgService";
+import { ChannelLogo } from "@/components/tv/ChannelLogo";
 
-const CATEGORIES = ["Alle", "Grunnpakke", "Nordiske", "Dokumentar", "Nyheter", "Barn", "Musikk"];
+const CATEGORIES = ["Alle", "Grunnpakke", "Sport", "Film", "Nordiske", "Dokumentar", "Nyheter", "Barn", "Musikk"];
 
-const ChannelScheduleModal = ({ channel, date, onClose }: { channel: ChannelSchedule, date: string, onClose: () => void }) => {
+function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+const ChannelScheduleModal = ({
+  channel,
+  date,
+  onClose,
+}: {
+  channel: ChannelSchedule;
+  date: string;
+  onClose: () => void;
+}) => {
   if (!channel) return null;
 
   const formatTime = (iso: string) => {
@@ -21,31 +36,33 @@ const ChannelScheduleModal = ({ channel, date, onClose }: { channel: ChannelSche
     const now = new Date();
     const start = new Date(p.start);
     const end = new Date(p.end);
-    const isToday = new Date().toISOString().split('T')[0] === date;
+    const isToday = toLocalDateKey(new Date()) === date;
     return isToday && now >= start && now < end;
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-300">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-300"
+    >
       <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
         {/* Header */}
         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-6">
             <div className="w-24 h-14 bg-white rounded-2xl border border-slate-200 p-3 flex items-center justify-center shadow-sm">
-              {channel.logo ? (
-                <img src={channel.logo} alt={channel.name} className="max-h-full max-w-full object-contain" />
-              ) : (
-                <span className="text-[10px] font-bold text-slate-400">{channel.name}</span>
-              )}
+              <ChannelLogo name={channel.name} src={channel.logo} />
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-900">Programoversikt</h2>
               <p className="text-sm text-indigo-600 font-bold uppercase tracking-wider">
-                {new Date(date).toLocaleDateString("no-NO", { weekday: 'long', day: 'numeric', month: 'long' })}
+                {channel.name} - {new Date(date).toLocaleDateString("no-NO", { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
           </div>
-          <button 
+          <button
+            type="button"
+            aria-label="Lukk programoversikt"
             onClick={onClose}
             className="p-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all active:scale-90 shadow-sm"
           >
@@ -107,10 +124,11 @@ export function TvGuideGrid() {
   const [channels, setChannels] = useState<ChannelSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("Alle");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => toLocalDateKey(new Date()));
   const [searchQuery, setSearchQuery] = useState("");
   const [activeChannel, setActiveChannel] = useState<ChannelSchedule | null>(null);
   const [now, setNow] = useState(new Date());
+  const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
   // Update "now" every minute to keep progress bars and live status accurate
   useEffect(() => {
@@ -127,27 +145,37 @@ export function TvGuideGrid() {
       arr.push({
         day: i === 0 ? "I dag" : i === 1 ? "I morgen" : d.toLocaleDateString("no-NO", { weekday: 'short' }),
         date: d.toLocaleDateString("no-NO", { day: 'numeric', month: 'short' }),
-        value: d.toISOString().split('T')[0],
+        value: toLocalDateKey(d),
       });
     }
     return arr;
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchGuide() {
       setLoading(true);
       try {
         const url = `/api/epg?date=${selectedDate}${selectedCategory !== "Alle" ? `&category=${selectedCategory}` : ""}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
+
+        if (!res.ok) throw new Error("Kunne ikke hente TV-guide");
+
         const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Ugyldig TV-guide respons");
+
         setChannels(data);
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Failed to load EPG:", error);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     fetchGuide();
+
+    return () => controller.abort();
   }, [selectedDate, selectedCategory]);
 
   const filteredChannels = useMemo(() => {
@@ -196,6 +224,7 @@ export function TvGuideGrid() {
             <div className="flex gap-2 overflow-x-auto no-scrollbar bg-slate-50 p-2 rounded-3xl border border-slate-100">
               {dates.map((d) => (
                 <button
+                  type="button"
                   key={d.value}
                   onClick={() => setSelectedDate(d.value)}
                   className={`flex flex-col items-center justify-center min-w-[75px] py-3 rounded-2xl transition-all duration-300 ${
@@ -235,12 +264,12 @@ export function TvGuideGrid() {
         <div className="grid gap-6 pb-20">
           {filteredChannels.length > 0 ? (
             filteredChannels.map((channel) => (
-              <ChannelRow 
-                key={channel.id} 
-                channel={channel} 
+              <ChannelRow
+                key={channel.id}
+                channel={channel}
                 now={now}
                 searchQuery={searchQuery}
-                isToday={selectedDate === new Date().toISOString().split('T')[0]}
+                isToday={selectedDate === todayKey}
                 onOpenSchedule={() => setActiveChannel(channel)}
               />
             ))
@@ -249,8 +278,12 @@ export function TvGuideGrid() {
               <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8">
                 <Search className="w-10 h-10 text-slate-200" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900">Vi fant ingen programmer som matchet "{searchQuery}"</h3>
-              <p className="text-slate-400 mt-3 max-w-md mx-auto font-medium">Prøv å søke etter generelle termer som "Nyheter", "Sport" eller navnet på en film.</p>
+              <h3 className="text-2xl font-black text-slate-900">
+                Vi fant ingen programmer som matchet søket ditt
+              </h3>
+              <p className="text-slate-400 mt-3 max-w-md mx-auto font-medium">
+                Prøv å søke etter Nyheter, Sport eller navnet på en film.
+              </p>
             </div>
           )}
         </div>
@@ -314,16 +347,17 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
     if (now.getTime() < start || now.getTime() > end) return 0;
     const elapsed = now.getTime() - start;
     return Math.min(100, Math.max(0, (elapsed / (end - start)) * 100));
-  }, [featuredProgram, isToday]);
+  }, [featuredProgram, isToday, now]);
 
   const formatTime = (iso: string) => {
     return new Date(iso).toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
-    <div 
+    <button
+      type="button"
       onClick={onOpenSchedule}
-      className={`group relative bg-white rounded-[3rem] border transition-all duration-500 cursor-pointer overflow-hidden flex flex-col md:flex-row items-stretch ${
+      className={`group relative flex w-full cursor-pointer flex-col items-stretch overflow-hidden rounded-[3rem] border bg-white text-left transition-all duration-500 md:flex-row ${
         searchMatch 
           ? "border-indigo-600 shadow-2xl shadow-indigo-500/10 scale-[1.01]" 
           : "border-slate-100 hover:border-indigo-200 hover:shadow-2xl hover:shadow-slate-200"
@@ -332,11 +366,11 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
       {/* Channel Identity Section */}
       <div className={`w-full md:w-60 flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r transition-colors ${searchMatch ? "bg-indigo-50 border-indigo-100" : "bg-slate-50/50 border-slate-100 group-hover:bg-white"}`}>
         <div className="relative w-36 h-20 transition-transform group-hover:scale-110 duration-500">
-          {channel.logo ? (
-            <img src={channel.logo} alt={channel.name} className="max-h-full max-w-full object-contain filter drop-shadow-sm" />
-          ) : (
-            <span className="text-sm font-black text-slate-300 uppercase tracking-widest">{channel.name}</span>
-          )}
+          <ChannelLogo
+            name={channel.name}
+            src={channel.logo}
+            imageClassName="filter drop-shadow-sm"
+          />
         </div>
         <div className={`mt-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${searchMatch ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-500"}`}>
           {channel.category}
@@ -404,6 +438,6 @@ function ChannelRow({ channel, now, searchQuery, isToday, onOpenSchedule }: { ch
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 group-hover:text-indigo-600 transition-colors">Program</span>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

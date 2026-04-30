@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Kino og filmlys</title>
+  <desc id="desc">En stilisert kinosal med projektorlys, uten filmplakater eller tredjepartsmerker.</desc>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123743"/>
+      <stop offset=".58" stop-color="#092630"/>
+      <stop offset="1" stop-color="#071923"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff4dd"/>
+      <stop offset="1" stop-color="#ffd1c9"/>
+    </linearGradient>
+    <linearGradient id="seat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7d75"/>
+      <stop offset="1" stop-color="#b73445"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#room)"/>
+  <path d="M134 100h932c26 0 48 22 48 48v292c0 26-22 48-48 48H134c-26 0-48-22-48-48V148c0-26 22-48 48-48Z" fill="#041820" opacity=".56"/>
+  <path d="M175 142h850c14 0 26 12 26 26v236c0 14-12 26-26 26H175c-14 0-26-12-26-26V168c0-14 12-26 26-26Z" fill="url(#screen)"/>
+  <path d="M254 430 1027 146v284Z" fill="#fff" opacity=".18"/>
+  <g fill="url(#seat)">
+    <path d="M66 594c0-42 34-76 76-76h92c42 0 76 34 76 76v126H66Z"/>
+    <path d="M334 576c0-45 36-81 81-81h102c45 0 81 36 81 81v144H334Z"/>
+    <path d="M624 576c0-45 36-81 81-81h102c45 0 81 36 81 81v144H624Z"/>
+    <path d="M912 594c0-42 34-76 76-76h92c42 0 76 34 76 76v126H912Z"/>
+  </g>
+  <g fill="#ffd4cc" opacity=".55">
+    <rect x="66" y="638" width="244" height="28" rx="14"/>
+    <rect x="334" y="632" width="264" height="30" rx="15"/>
+    <rect x="624" y="632" width="264" height="30" rx="15"/>
+    <rect x="912" y="638" width="244" height="28" rx="14"/>
+  </g>
+  <g transform="translate(92 214)">
+    <circle cx="48" cy="48" r="34" fill="#ff7d75"/>
+    <circle cx="48" cy="48" r="16" fill="#092630"/>
+    <rect x="82" y="30" width="112" height="36" rx="18" fill="#ff7d75"/>
+    <path d="m184 48 145-64v128Z" fill="#ffd1c9" opacity=".54"/>
+  </g>
+</svg>

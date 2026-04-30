@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "validate:channel-logos": "node scripts/validate-channel-logos.mjs"
   },
   "dependencies": {
+    "@next/third-parties": "^16.2.4",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",

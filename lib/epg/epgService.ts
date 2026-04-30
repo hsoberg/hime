@@ -1,5 +1,29 @@
-import { Program, ChannelSchedule } from './types';
+import type { Program, ChannelSchedule } from './types';
 export type { Program, ChannelSchedule };
+
+type VgListing = {
+  title?: string | {
+    title?: string;
+    slug?: string;
+  };
+  slug?: string;
+  episode?: {
+    overview?: string;
+  };
+  description?: string;
+  startsAt: string;
+  endsAt: string;
+};
+
+type VgSchedulePayload = {
+  props?: {
+    pageProps?: {
+      initialTvSchedule?: {
+        listings?: VgListing[];
+      };
+    };
+  };
+};
 
 // Mapping from Hime channel names to VG slugs
 const CHANNEL_SLUGS: Record<string, string> = {
@@ -118,8 +142,8 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
     const match = text.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
     if (!match) return null;
 
-    const json = JSON.parse(match[1]);
-    const listings = json.props.pageProps.initialTvSchedule?.listings;
+    const json = JSON.parse(match[1]) as VgSchedulePayload;
+    const listings = json.props?.pageProps?.initialTvSchedule?.listings;
 
     if (!listings || !Array.isArray(listings)) return null;
 
@@ -134,12 +158,13 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
     const endWindow = new Date(requestedDate.getTime() + 28 * 60 * 60 * 1000);
 
     const programs: Program[] = listings
-      .map((item: any) => {
-        let title = typeof item.title === 'string' ? item.title : (item.title?.title || "Ukjent program");
+      .map((item: VgListing) => {
+        const titleObject = typeof item.title === "object" ? item.title : undefined;
+        let title = typeof item.title === 'string' ? item.title : (titleObject?.title || "Ukjent program");
         
         // Fix for titles that are just dates
         if (title.match(/\d{2}\.\d{2}\.\d{4}/)) {
-          const slugTitle = item.title?.slug || item.slug;
+          const slugTitle = titleObject?.slug || item.slug;
           if (slugTitle && typeof slugTitle === 'string') {
             title = slugTitle
               .replace(/-/g, ' ')
@@ -160,7 +185,8 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
           start: item.startsAt,
           end: item.endsAt,
           category: getCategoryMapping(channelName),
-          description: description
+          description: description,
+          source: "real" as const
         };
       })
       .filter(p => {
@@ -168,8 +194,6 @@ async function fetchRealEpg(channelName: string, date: Date): Promise<Program[] 
         const pEnd = new Date(p.end);
         return pEnd > startWindow && pStart < endWindow;
       });
-
-    if (programs.length === 0) return null;
 
     if (programs.length === 0) return null;
 
@@ -189,7 +213,7 @@ function generateDaySchedule(channelName: string, date: Date): Program[] {
   const random = seedRandom(seed);
   
   const programs: Program[] = [];
-  let current = new Date(date);
+  const current = new Date(date);
   current.setHours(0, 0, 0, 0);
   
   const dayEnd = new Date(current);
@@ -209,6 +233,7 @@ function generateDaySchedule(channelName: string, date: Date): Program[] {
       end: end.toISOString(),
       category: channelCategory,
       description: `${title} er et populært program i kategorien ${channelCategory.toLowerCase()}.`,
+      source: "fallback",
     });
   }
   

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { OperatingNoticeBanner } from "@/components/layout/OperatingNoticeBanner";
 import { SupportAgentBubble } from "@/components/support/SupportAgentBubble";
+import { GoogleTagManager } from "@next/third-parties/google";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -35,8 +38,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nb" className={`${raleway.variable} h-full`} suppressHydrationWarning>
+      {process.env.NEXT_PUBLIC_GTM_ID && (
+        <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+      )}
       <body className="min-h-full flex flex-col antialiased">
         <Header />
+        <Suspense fallback={null}>
+          <OperatingNoticeBanner />
+        </Suspense>
         <main className="flex-1">{children}</main>
         <Footer />
         <SupportAgentBubble />

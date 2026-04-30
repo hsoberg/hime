@@ -2,62 +2,13 @@ import type { Metadata } from "next";
 import { CheckCircle2, AlertTriangle, Clock, MapPin, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { RefreshStatusButton } from "@/components/support/RefreshStatusButton";
+import { getOperatingNotices } from "@/lib/operatingNotices";
 
 export const metadata: Metadata = {
   title: "Driftsmeldinger - Hime",
   description:
     "Folg med pa driftsstatus, planlagt vedlikehold og eventuelle feil i vare tjenester.",
 };
-
-type NoticeType = {
-  color: string;
-  text: string;
-};
-
-type NoticeMessage = {
-  message: string;
-  time: string;
-  type: NoticeType;
-};
-
-type OperatingNotice = {
-  uuid: string;
-  name: string;
-  created: string;
-  type: NoticeType;
-  messages: NoticeMessage[];
-};
-
-type OperatingNoticePayload = {
-  status: boolean;
-  data?: {
-    headerTitle?: string;
-    headerText?: string;
-    active: OperatingNotice[];
-    historic: OperatingNotice[];
-  };
-};
-
-async function getOperatingNotices() {
-  try {
-    const response = await fetch("https://mktv.no/api/operatingnotice/data/", {
-      next: { revalidate: 300 },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response.json()) as OperatingNoticePayload;
-    if (!payload.status || !payload.data) {
-      return null;
-    }
-
-    return payload.data;
-  } catch {
-    return null;
-  }
-}
 
 function formatDate(value: string) {
   const date = new Date(value);
