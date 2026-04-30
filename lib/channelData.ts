@@ -78,6 +78,10 @@ export const channelLogos: Record<string, string> = {
   "V film action": "https://static.wikia.nocookie.net/logopedia/images/4/4c/V_Film_Action_HD_2020.svg/revision/latest/scale-to-width-down/200?cb=20210809113358",
   "V film family": "https://static.wikia.nocookie.net/logopedia/images/6/6b/V_Film_Family_HD_2020.svg/revision/latest?cb=20210809114813",
   "V film hits": "https://static.wikia.nocookie.net/logopedia/images/e/e6/V_Film_Hits_HD_2020.svg/revision/latest?cb=20210809120623",
+  "V sport Premier League": "https://upload.wikimedia.org/wikipedia/commons/c/c9/V_Sport_Premier_League_Logo.png",
+  "V sport Premier League 1": "https://upload.wikimedia.org/wikipedia/commons/c/c9/V_Sport_Premier_League_Logo.png",
+  "V sport Premier League 2": "https://upload.wikimedia.org/wikipedia/commons/c/c9/V_Sport_Premier_League_Logo.png",
+  "V sport Premier League 3": "https://upload.wikimedia.org/wikipedia/commons/c/c9/V_Sport_Premier_League_Logo.png",
 };
 
 export const baseChannels: Channel[] = [

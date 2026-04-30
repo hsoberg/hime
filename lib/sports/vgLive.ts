@@ -282,7 +282,7 @@ export async function getVgLivePremiumMatch(
         price: "649 kr/mnd",
         pitch: "For deg som vil samle Premier League, F1, storfilm og Viaplay-innhold i en pakke.",
         channelName,
-        channelLogo: channelLogos["V sport 1"] ?? "",
+        channelLogo: channelLogos[channelName] ?? channelLogos["V sport 1"],
         title: teams.map((team) => team.name).join(" - "),
         description: `Premier League på ${channelName}. Aktuell kamp valgt fra VG Live sitt kampoppsett.`,
         start: event.startDate,
