@@ -101,6 +101,13 @@ const PREMIER_LEAGUE_LOGO_FALLBACKS: Record<string, string> = {
   tottenham: "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg",
   "west ham": "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg",
   wolverhampton: "https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg",
+  brighton: "https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg",
+  brentford: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg",
+  bournemouth: "https://upload.wikimedia.org/wikipedia/en/e/e5/AFC_Bournemouth_%282013%29.svg",
+  leicester: "https://upload.wikimedia.org/wikipedia/en/2/2d/Leicester_City_crest.svg",
+  "nottingham forest": "https://upload.wikimedia.org/wikipedia/en/e/e5/Nottingham_Forest_F.C._logo.svg",
+  southampton: "https://upload.wikimedia.org/wikipedia/en/c/c9/Southampton_FC.svg",
+  ipswich: "https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town.svg",
 };
 
 function localDateKey(date: Date) {

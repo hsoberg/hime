@@ -111,12 +111,13 @@ function TeamLogoPair({ highlight }: { highlight: PremiumGuideHighlight }) {
 }
 
 function TeamLogo({ team }: { team: NonNullable<PremiumGuideHighlight["teamLogos"]>[number] }) {
+  const [imgError, setImgError] = useState(false);
   const src = logoSrc(team.logoUrl);
 
   return (
     <div className="min-w-0 text-center">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-border bg-white p-2 shadow-sm">
-        {src ? (
+        {src && !imgError ? (
           <img
             src={src}
             alt={`${team.name} logo`}
@@ -124,9 +125,10 @@ function TeamLogo({ team }: { team: NonNullable<PremiumGuideHighlight["teamLogos
             loading="eager"
             decoding="async"
             referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <span className="text-label font-extrabold text-dark">{team.shortName}</span>
+          <span className="text-label font-extrabold text-dark">{team.shortName || team.name.substring(0, 3).toUpperCase()}</span>
         )}
       </div>
       <p className="mt-2 truncate text-caption font-extrabold text-dark">{team.name}</p>
